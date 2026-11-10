@@ -5,13 +5,18 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { NEGOCIO, METODOS_PAGO } from '@/lib/config';
 import { q, fecha, sumarDias, textoGarantia, errMsg } from '@/lib/format';
-import { Badge } from '@/components/ui';
+import { Badge, Modal } from '@/components/ui';
 import { BloqueFirma } from '@/components/Firmas';
 
 export default function Documento() {
   const { id } = useParams();
   const router = useRouter();
   const [d, setD] = useState(null);
+  const [accion, setAccion] = useState(null);   // 'anular' | 'rechazar'
+  const [motivo, setMotivo] = useState('');
+  const [errAccion, setErrAccion] = useState('');
+  const [procesando, setProcesando] = useState(false);
+  const abrir = (a) => { setAccion(a); setErrAccion(''); setMotivo(''); };
 
   const cargar = () => supabase.from('documentos')
     .select('*, clientes(*), documento_items(*), origen:origen_id(numero)')
@@ -24,16 +29,19 @@ export default function Documento() {
   const c = d.clientes;
 
   async function anular() {
-    const motivo = prompt('Motivo de la anulación (el inventario regresa automáticamente):');
-    if (!motivo) return;
-    const { error } = await supabase.rpc('anular_venta', { p_id: d.id, p_motivo: motivo });
-    if (error) return alert(errMsg(error));
-    cargar();
+    if (!motivo.trim()) return setErrAccion('Escribe el motivo de la anulación');
+    setProcesando(true); setErrAccion('');
+    const { error } = await supabase.rpc('anular_venta', { p_id: d.id, p_motivo: motivo.trim() });
+    setProcesando(false);
+    if (error) return setErrAccion(errMsg(error));
+    setAccion(null); setMotivo(''); cargar();
   }
   async function rechazar() {
-    if (!confirm('¿Marcar la cotización como rechazada?')) return;
-    await supabase.from('documentos').update({ estado: 'rechazada' }).eq('id', d.id);
-    cargar();
+    setProcesando(true); setErrAccion('');
+    const { error } = await supabase.from('documentos').update({ estado: 'rechazada' }).eq('id', d.id);
+    setProcesando(false);
+    if (error) return setErrAccion(errMsg(error));
+    setAccion(null); cargar();
   }
   function whatsapp() {
     const tel = (c?.telefono || '').replace(/\D/g, '').slice(-8);
@@ -58,14 +66,38 @@ export default function Documento() {
         {esCot && d.estado === 'pendiente' && <>
           <Link className="btn-ghost" href={`/nuevo?tipo=COT&id=${d.id}`}>Editar</Link>
           <Link className="btn-primary bg-green-700 hover:bg-green-800" href={`/nuevo?tipo=VTA&desde=${d.id}`}>Convertir en venta</Link>
-          <button className="btn-danger" onClick={rechazar}>Rechazada</button>
+          <button className="btn-danger" onClick={() => abrir('rechazar')}>Rechazada</button>
         </>}
         <Link className="btn-ghost" href={`/nuevo?tipo=COT&desde=${d.id}`}>Duplicar como cotización</Link>
         {!esCot && d.estado !== 'anulada' && <>
           <Link className="btn-ghost" href={`/garantias?nuevo=1&venta=${d.numero}`}>Garantía / devolución</Link>
-          <button className="btn-danger" onClick={anular}>Anular</button>
+          <button className="btn-danger" onClick={() => abrir('anular')}>Anular</button>
         </>}
       </div>
+
+      {accion && (
+        <Modal title={accion === 'anular' ? `Anular ${d.numero}` : `Rechazar ${d.numero}`} onClose={() => setAccion(null)}>
+          <div className="space-y-3">
+            {accion === 'anular' ? (
+              <>
+                <p className="text-sm text-gray-600">La venta queda marcada como <b>anulada</b> (no se borra) y los productos regresan al inventario.</p>
+                <textarea className="input" rows={3} autoFocus placeholder="Motivo (ej. cliente canceló, error al registrar…)"
+                  value={motivo} onChange={(e) => { setMotivo(e.target.value); setErrAccion(''); }} />
+              </>
+            ) : (
+              <p className="text-sm text-gray-600">¿Marcar esta cotización como rechazada por el cliente?</p>
+            )}
+            {errAccion && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{errAccion}</p>}
+            <div className="flex gap-2">
+              <button className="btn-ghost flex-1" onClick={() => setAccion(null)}>Cancelar</button>
+              <button className="btn-danger flex-1 bg-red-600 text-white hover:bg-red-700" disabled={procesando}
+                onClick={accion === 'anular' ? anular : rechazar}>
+                {procesando ? 'Procesando…' : accion === 'anular' ? 'Anular venta' : 'Marcar rechazada'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
       {d.estado === 'anulada' && <p className="no-print mb-3 text-sm bg-red-50 text-red-700 rounded-lg px-3 py-2">Venta anulada: {d.motivo_anulacion}</p>}
 
       {/* ======= Hoja imprimible ======= */}
