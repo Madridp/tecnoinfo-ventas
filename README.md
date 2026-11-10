@@ -21,6 +21,15 @@ Next.js 14 + Supabase (Auth + RLS) · listo para Vercel.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = tu anon key
 4. **Deploy**. Opcional: conecta un subdominio (ej. `ventas.tecnoinfo.info`).
 
+### 2-B. En tu servidor con Coolify (en lugar de Vercel)
+1. Sube esta carpeta a un repositorio **privado** de GitHub.
+2. Coolify → **Sources** → agrega tu GitHub App (si no tienes una propia).
+3. **Projects → + New → Resource → Private Repository (with GitHub App)** → elige el repo, rama `main`.
+4. **Build Pack: Dockerfile** · **Ports Exposes: 3000**.
+5. **Environment Variables:** `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`, ambas con **Build Variable** marcado.
+6. **Domains:** `https://ventas.tecnoinfo.info` (o mientras tanto `https://ventas.TU-IP.sslip.io`). Traefik saca el certificado solo.
+7. **Deploy.** Para actualizar: subes los cambios a GitHub y le das **Redeploy**.
+
 Para probar en tu compu: copia `.env.example` a `.env.local`, pon tus llaves, `npm install` y `npm run dev`.
 
 ## Personalizar
