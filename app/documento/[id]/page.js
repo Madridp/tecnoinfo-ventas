@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { NEGOCIO, METODOS_PAGO } from '@/lib/config';
 import { q, fecha, sumarDias, textoGarantia, errMsg } from '@/lib/format';
 import { Badge, Modal } from '@/components/ui';
-import { BloqueFirma } from '@/components/Firmas';
+import { BloqueFirma, BloqueFirmaEmisor } from '@/components/Firmas';
 
 export default function Documento() {
   const { id } = useParams();
@@ -182,10 +182,7 @@ export default function Documento() {
         )}
         {d.estado !== 'anulada' && d.estado !== 'rechazada' && (
           <div className="grid grid-cols-2 gap-10 mt-10 items-end">
-            <div className="text-center text-xs text-gray-500">
-              <div className="h-16" />
-              <div className="border-t border-gray-400 pt-1">{esCot ? `${NEGOCIO.responsable} · ${NEGOCIO.nombre}` : `Entregado por ${NEGOCIO.nombre}`}</div>
-            </div>
+            <BloqueFirmaEmisor documentoId={d.id} tipo={d.tipo} numero={d.numero} />
             <BloqueFirma documentoId={d.id} momento={esCot ? 'aceptacion' : 'entrega'} cliente={c} numero={d.numero} />
           </div>
         )}

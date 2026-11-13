@@ -55,4 +55,10 @@ Recibos (entrega), cotizaciones (aceptación) y garantías (recepción y retiro)
 - **Pedir por WhatsApp:** genera un enlace de un solo uso que vence en 7 días. El cliente lo abre sin cuenta, revisa el detalle y firma. Cuando regresas a la pestaña, la firma ya aparece.
 - Se guarda la imagen de la firma, el nombre, el DPI (opcional), la fecha y hora, si fue en persona o por enlace, y el dispositivo usado. Al imprimir o guardar en PDF, la firma sale en el documento.
 
+### Tu firma (TECNO INFO)
+Corre `supabase/03_firma_emisor.sql` en Supabase (después de `02_firmas.sql`).
+- En cualquier cotización, recibo o garantía aparece **Crear mi firma** del lado de TECNO INFO. La dibujas una sola vez y queda guardada.
+- Desde ahí, cada documento trae el botón **Firmar (TECNO INFO)** que la estampa con un clic, con fecha y hora. **Otra firma** la reemplaza; **quitar** la borra de ese documento.
+- En la cotización el cliente firma **"Recibido y aceptado"**; en el recibo, **"Recibí conforme"**.
+
 El recibo es un comprobante interno; la factura FEL se sigue emitiendo en la SAT.

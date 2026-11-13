@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { NEGOCIO, ESTADOS_CASO } from '@/lib/config';
 import { q, fecha, fechaHora, sumarDias, textoGarantia, errMsg } from '@/lib/format';
 import { Field, Badge } from '@/components/ui';
-import { BloqueFirma } from '@/components/Firmas';
+import { BloqueFirma, BloqueFirmaEmisor } from '@/components/Firmas';
 
 export default function Caso() {
   const { id } = useParams();
@@ -92,11 +92,11 @@ export default function Caso() {
             cubierta se le informará el costo antes de cualquier reparación. Equipos no retirados 60 días después de notificado
             se consideran abandonados. Presente este comprobante para retirar el equipo.
           </div>
-          <div className="grid grid-cols-2 gap-10 mt-10 items-end">
+          <div className="grid grid-cols-3 gap-6 mt-10 items-end">
+            <BloqueFirmaEmisor casoId={c.id} tipo="CASO" numero={c.numero} />
             <BloqueFirma casoId={c.id} momento="recepcion" cliente={c.clientes} numero={c.numero} />
             <BloqueFirma casoId={c.id} momento="retiro" cliente={c.clientes} numero={c.numero} />
           </div>
-          <p className="text-center text-[10px] text-gray-400 mt-2">Recibido por {NEGOCIO.nombre}</p>
           <p className="text-center text-xs text-gray-500 mt-6 pt-3 border-t border-brand-line">{NEGOCIO.nombre} · {NEGOCIO.telefono} · {NEGOCIO.web}</p>
         </div>
       </div>
